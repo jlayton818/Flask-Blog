@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, url_for, flash, redirect, abo
 # make a Flask application object called app
 app = Flask(__name__)
 app.config["DEBUG"] = True
-
+app.config['SECRET_KEY'] = 'your secret key'
 
 
 # Function to open a connection to the database.db file
@@ -24,18 +24,45 @@ def get_db_connection():
 @app.route('/')
 def index():
     
+    #get database connection
     conn = get_db_connection()
     
-    # Fetching data from the table 'posts'
+    # execute a query to read all posts from the post table in the database
     posts = conn.execute('SELECT * FROM posts').fetchall()
 
-    
+    #close the connection
     conn.close()
     
     return render_template('index.html', posts=posts)
 
 
 # route to create a post
+@app.route('/create/', methods=('GET', 'POST'))
 
+
+def create():
+    #determine if the page is being requested with a post or get
+    if request.method == 'POST':
+        
+        #get the title and content
+        title = request.form['title']
+        content = request.form['content']
+        
+        #display error if title or content not submitted
+        if not title:
+            flash("Title is required")
+        elif not content:
+            flash("Content is required")
+        else:
+            conn = get_db_connection()
+            #insert data into databse
+            conn.execute('INSERT INTO posts (title, content) VALUES (?, ?)', (title, content))
+            
+            conn.commit()
+            conn.close()
+            return redirect(url_for('index'))
+
+        
+    return render_template('create.html')
 
 app.run(port=5008)
