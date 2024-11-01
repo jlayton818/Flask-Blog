@@ -24,7 +24,15 @@ def get_db_connection():
 @app.route('/')
 def index():
     
-    return "<h1>Welcome to Jonah's Blog</h1>"
+    conn = get_db_connection()
+    
+    # Fetching data from the table 'posts'
+    posts = conn.execute('SELECT * FROM posts').fetchall()
+
+    
+    conn.close()
+    
+    return render_template('index.html', posts=posts)
 
 
 # route to create a post
